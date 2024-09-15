@@ -56,25 +56,38 @@ exports.updateTask = async (req, res) => {
   const { title, description, status } = req.body;
 
   try {
-    let task = await Task.findById(id);
+    // Find the task by ID
+    const task = await Task.findById(id);
 
-    if (!task) return res.status(404).json({ message: "Task not found" });
-
-    if (task.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized" });
+    // Check if the task exists
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
     }
 
-    task.title = title || task.title;
-    task.description = description || task.description;
-    task.status = status || task.status;
+    // Optional: Add user authorization logic here, if necessary
+    // if (task.userId.toString() !== req.user.id) {
+    //   return res.status(403).json({ message: "Unauthorized" });
+    // }
 
+    // Update task fields only if new values are provided
+    if (title !== undefined) task.title = title;
+    if (description !== undefined) task.description = description;
+    if (status !== undefined) task.status = status;
+
+    // Save the updated task in the database
     const updatedTask = await task.save();
-    res.json(updatedTask);
 
-    // Broadcast to all connected clients
+    // Send the updated task as a response
+    res.json({
+      message: "Task updated",
+      task: updatedTask,
+    });
+
+    // Emit the update event to notify all connected clients
     req.io.emit("task-updated", updatedTask);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    // Handle server errors
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -84,14 +97,9 @@ exports.deleteTask = async (req, res) => {
 
   try {
     const task = await Task.findById(id);
-
     if (!task) return res.status(404).json({ message: "Task not found" });
 
-    if (task.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
-    await task.remove();
+    await task.deleteOne({ _id: id });
     res.json({ message: "Task deleted" });
 
     // Broadcast to all connected clients

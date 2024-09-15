@@ -5,13 +5,13 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://localhost:4000
+  - url: https://whitestonebackend.onrender.com/
     description: Local server
 
 components:
   securitySchemes:
     bearerAuth:
-      type: http
+      type: https
       scheme: bearer
       bearerFormat: JWT
 

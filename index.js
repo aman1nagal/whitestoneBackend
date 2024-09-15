@@ -16,7 +16,7 @@ const server = http.createServer(app);
 // Pass server instance to socket.io
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000", // frontend URL
+    origin: "*", // frontend URL
     methods: ["GET", "POST", "PUT", "DELETEs"],
     credentials: true,
   },

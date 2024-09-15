@@ -15,9 +15,7 @@ exports.signup = async (req, res) => {
       email,
       password,
     });
-
     await user.save();
-
     // Generate JWT token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
@@ -46,7 +44,12 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    res.json({ token });
+    const userData = {
+      userName: user.username,
+      email: user.email,
+      id: user.id,
+    };
+    res.json({ token, userData });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

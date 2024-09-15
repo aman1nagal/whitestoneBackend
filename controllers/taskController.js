@@ -3,10 +3,12 @@ const Task = require("../models/task");
 // Get all tasks for the authenticated user
 exports.getTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({}).sort({
+    const userId = req.user.id;
+    // console.log(userId);
+    const tasks = await Task.find({ userId }).sort({
       timestamp: -1,
     });
-
+    // console.log(tasks);
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -30,17 +32,17 @@ exports.getTaskById = async (req, res) => {
 // Create a new task
 exports.createTask = async (req, res) => {
   const { title, description, status } = req.body;
-  debugger;
+  const userId = req.user.id;
+
   try {
     const newTask = new Task({
       title,
       description,
       status,
       timestamp: Date.now(),
+      userId,
     });
-    console.log(newTask, "zzzzzz");
     const task = await newTask.save();
-    console.log(task, "amannnnn");
     res.status(201).json(task);
 
     // Broadcast to all connected clients
@@ -52,10 +54,10 @@ exports.createTask = async (req, res) => {
 
 // Update an existing task
 exports.updateTask = async (req, res) => {
-  const { id } = req.params;
-  const { title, description, status } = req.body;
-
   try {
+    const { id } = req.params;
+    const { title, description, status } = req.body;
+
     // Find the task by ID
     const task = await Task.findById(id);
 
@@ -64,10 +66,12 @@ exports.updateTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Optional: Add user authorization logic here, if necessary
-    // if (task.userId.toString() !== req.user.id) {
-    //   return res.status(403).json({ message: "Unauthorized" });
-    // }
+    // Check if the user is authorized to update this task
+    if (task.userId.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to update this task" });
+    }
 
     // Update task fields only if new values are provided
     if (title !== undefined) task.title = title;

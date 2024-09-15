@@ -21,5 +21,4 @@ router.get("/:id", getTaskById);
 router.put("/:id", validateTask, updateTask);
 router.delete("/:id", deleteTask);
 
-
 module.exports = router;

@@ -14,4 +14,5 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-module.exports = mongoose.model("User", userSchema);
+// Use the mongoose model singleton pattern
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);
